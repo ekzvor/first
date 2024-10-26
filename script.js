@@ -7,8 +7,18 @@ const paragraphs = [
 ];
 
 const textArea = document.getElementById("text-area");
+const movingImage = document.getElementById("moving-image");
+const images = ["image1.png", "image2.png"];
+let currentImageIndex = 0;
+
 let paragraphIndex = 0;
 let charIndex = 0;
+
+// Позиція і швидкість зображення
+let posX = window.innerWidth / 2;
+let posY = window.innerHeight / 2;
+let velocityX = 3;
+let velocityY = 3;
 
 // Функція для поступового додавання тексту
 function typeParagraph() {
@@ -26,4 +36,38 @@ function typeParagraph() {
     }
 }
 
+// Функція для руху зображення
+function moveImage() {
+    const containerRect = document.querySelector('.container').getBoundingClientRect();
+    const imageRect = movingImage.getBoundingClientRect();
+
+    // Рух зображення
+    posX += velocityX;
+    posY += velocityY;
+
+    // Перевірка зіткнення з межами контейнера
+    if (posX <= containerRect.left || posX + imageRect.width >= containerRect.right) {
+        velocityX = -velocityX;
+        changeImage();
+    }
+    if (posY <= containerRect.top || posY + imageRect.height >= containerRect.bottom) {
+        velocityY = -velocityY;
+        changeImage();
+    }
+
+    // Оновлення позиції зображення
+    movingImage.style.left = posX + "px";
+    movingImage.style.top = posY + "px";
+
+    requestAnimationFrame(moveImage);
+}
+
+// Функція для зміни зображення
+function changeImage() {
+    currentImageIndex = (currentImageIndex + 1) % images.length;
+    movingImage.src = images[currentImageIndex];
+}
+
+// Запуск функцій
 typeParagraph();
+moveImage();
