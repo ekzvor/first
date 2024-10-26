@@ -7,18 +7,21 @@ const paragraphs = [
 ];
 
 const textArea = document.getElementById("text-area");
-const movingImage = document.getElementById("moving-image");
 const images = ["image1.png", "image2.png"];
-let currentImageIndex = 0;
+const movingImages = [];
+const imageCount = 4; // Всього 4 зображення (по 2 кожного типу)
+const offset = 100; // Відступ від країв екрану
+
+// Кути для початкового розміщення зображень з відступом від граней
+const corners = [
+    { x: offset, y: offset },                                        // Верхній лівий
+    { x: window.innerWidth - offset - 60, y: offset },               // Верхній правий
+    { x: offset, y: window.innerHeight - offset - 60 },              // Нижній лівий
+    { x: window.innerWidth - offset - 60, y: window.innerHeight - offset - 60 } // Нижній правий
+];
 
 let paragraphIndex = 0;
 let charIndex = 0;
-
-// Позиція і швидкість зображення
-let posX = window.innerWidth / 2;
-let posY = window.innerHeight / 2;
-let velocityX = 3;
-let velocityY = 3;
 
 // Функція для поступового додавання тексту
 function typeParagraph() {
@@ -36,38 +39,87 @@ function typeParagraph() {
     }
 }
 
-// Функція для руху зображення
-function moveImage() {
+// Створення рухомих зображень у кутах
+function createMovingImages() {
+    for (let i = 0; i < imageCount; i++) {
+        const imgElement = document.createElement("img");
+        imgElement.src = images[i % images.length];
+        imgElement.classList.add("moving-image");
+        imgElement.style.position = "absolute";
+        imgElement.style.width = "60px";
+        imgElement.style.height = "60px";
+        document.body.appendChild(imgElement);
+
+        movingImages.push({
+            element: imgElement,
+            posX: corners[i].x,
+            posY: corners[i].y,
+            velocityX: (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1),
+            velocityY: (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1),
+            cooldown: 0 // "Відступ часу" для запобігання застрягання
+        });
+    }
+}
+
+// Функція для руху зображень
+function moveImages() {
     const containerRect = document.querySelector('.container').getBoundingClientRect();
-    const imageRect = movingImage.getBoundingClientRect();
 
-    // Рух зображення
-    posX += velocityX;
-    posY += velocityY;
+    movingImages.forEach((img) => {
+        const imageRect = img.element.getBoundingClientRect();
 
-    // Перевірка зіткнення з межами контейнера
-    if (posX <= containerRect.left || posX + imageRect.width >= containerRect.right) {
-        velocityX = -velocityX;
-        changeImage();
-    }
-    if (posY <= containerRect.top || posY + imageRect.height >= containerRect.bottom) {
-        velocityY = -velocityY;
-        changeImage();
-    }
+        // Оновлення позицій зображення
+        img.posX += img.velocityX;
+        img.posY += img.velocityY;
 
-    // Оновлення позиції зображення
-    movingImage.style.left = posX + "px";
-    movingImage.style.top = posY + "px";
+        // Зменшуємо "відступ часу", якщо він активний
+        if (img.cooldown > 0) img.cooldown--;
 
-    requestAnimationFrame(moveImage);
+        // Перевірка зіткнення з межами вікна браузера
+        if (img.posX <= 0 || img.posX + imageRect.width >= window.innerWidth) {
+            img.velocityX = -img.velocityX;
+            img.velocityY = getRandomVelocity();
+            changeImage(img);
+        }
+        if (img.posY <= 0 || img.posY + imageRect.height >= window.innerHeight) {
+            img.velocityY = -img.velocityY;
+            img.velocityX = getRandomVelocity();
+            changeImage(img);
+        }
+
+        // Перевірка зіткнення з контейнером
+        if (
+            img.cooldown === 0 && // Перевіряємо, чи не в активному "відступі часу"
+            img.posX < containerRect.right &&
+            img.posX + imageRect.width > containerRect.left &&
+            img.posY < containerRect.bottom &&
+            img.posY + imageRect.height > containerRect.top
+        ) {
+            img.velocityX = -img.velocityX;
+            img.velocityY = -img.velocityY;
+            changeImage(img);
+            img.cooldown = 20; // Встановлюємо "відступ часу" після зіткнення з контейнером
+        }
+
+        img.element.style.left = img.posX + "px";
+        img.element.style.top = img.posY + "px";
+    });
+
+    requestAnimationFrame(moveImages);
 }
 
 // Функція для зміни зображення
-function changeImage() {
-    currentImageIndex = (currentImageIndex + 1) % images.length;
-    movingImage.src = images[currentImageIndex];
+function changeImage(img) {
+    const currentIndex = images.indexOf(img.element.src.split('/').pop());
+    img.element.src = images[(currentIndex + 1) % images.length];
+}
+
+// Функція для генерації випадкової швидкості відбиття
+function getRandomVelocity() {
+    return (Math.random() * 2 + 1) * (Math.random() > 0.5 ? 1 : -1);
 }
 
 // Запуск функцій
 typeParagraph();
-moveImage();
+createMovingImages();
+moveImages();
