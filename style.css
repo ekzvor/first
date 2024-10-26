@@ -6,34 +6,39 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    background-color: #f9f1e7;
 }
 
 .container {
     position: relative;
     width: 80%;
-    height: 80%;
-    border: 2px solid black;
+    max-width: 800px;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #fffaf3;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: white;
 }
 
 #text-area {
-    font-size: 24px;
-    font-family: Arial, sans-serif;
-    color: black;
-    white-space: nowrap;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: #333;
+    line-height: 1.6;
 }
 
 #moving-image {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: moveUp 6s linear infinite;
+}
+
+@keyframes moveUp {
+    0% { bottom: 0; }
+    50% { bottom: calc(100% - 70px); }
+    100% { bottom: 0; }
 }
